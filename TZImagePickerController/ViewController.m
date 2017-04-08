@@ -15,6 +15,8 @@
 #import "LxGridViewFlowLayout.h"
 #import "TZImageManager.h"
 #import "TZVideoPlayerController.h"
+#import "TZPhotoPreviewController.h"
+#import "TZGifPhotoPreviewController.h"
 
 @interface ViewController ()<TZImagePickerControllerDelegate,UICollectionViewDataSource,UICollectionViewDelegate,UIActionSheetDelegate,UIImagePickerControllerDelegate,UIAlertViewDelegate,UINavigationControllerDelegate> {
     NSMutableArray *_selectedPhotos;
@@ -31,14 +33,19 @@
 @property (weak, nonatomic) IBOutlet UISwitch *sortAscendingSwitch;     ///< 照片排列按修改时间升序
 @property (weak, nonatomic) IBOutlet UISwitch *allowPickingVideoSwitch; ///< 允许选择视频
 @property (weak, nonatomic) IBOutlet UISwitch *allowPickingImageSwitch; ///< 允许选择图片
+@property (weak, nonatomic) IBOutlet UISwitch *allowPickingGifSwitch;
 @property (weak, nonatomic) IBOutlet UISwitch *allowPickingOriginalPhotoSwitch; ///< 允许选择原图
 @property (weak, nonatomic) IBOutlet UISwitch *showSheetSwitch; ///< 显示一个sheet,把拍照按钮放在外面
-@property (weak, nonatomic) IBOutlet UITextField *maxCountTF; ///< 照片最大可选张数，设置为1即为单选模式
+@property (weak, nonatomic) IBOutlet UITextField *maxCountTF;  ///< 照片最大可选张数，设置为1即为单选模式
 @property (weak, nonatomic) IBOutlet UITextField *columnNumberTF;
+@property (weak, nonatomic) IBOutlet UISwitch *allowCropSwitch;
+@property (weak, nonatomic) IBOutlet UISwitch *needCircleCropSwitch;
 @end
 
 @implementation ViewController
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 - (UIImagePickerController *)imagePickerVc {
     if (_imagePickerVc == nil) {
         _imagePickerVc = [[UIImagePickerController alloc] init];
@@ -51,11 +58,8 @@
             tzBarItem = [UIBarButtonItem appearanceWhenContainedInInstancesOfClasses:@[[TZImagePickerController class]]];
             BarItem = [UIBarButtonItem appearanceWhenContainedInInstancesOfClasses:@[[UIImagePickerController class]]];
         } else {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
             tzBarItem = [UIBarButtonItem appearanceWhenContainedIn:[TZImagePickerController class], nil];
             BarItem = [UIBarButtonItem appearanceWhenContainedIn:[UIImagePickerController class], nil];
-#pragma clang diagnostic pop
         }
         NSDictionary *titleTextAttributes = [tzBarItem titleTextAttributesForState:UIControlStateNormal];
         [BarItem setTitleTextAttributes:titleTextAttributes forState:UIControlStateNormal];
@@ -80,10 +84,17 @@
     LxGridViewFlowLayout *layout = [[LxGridViewFlowLayout alloc] init];
     _margin = 4;
     _itemWH = (self.view.tz_width - 2 * _margin - 4) / 3 - _margin;
+<<<<<<< HEAD
     layout.itemSize = CGSizeMake(_itemWH, _itemWH);//每个Cell的宽高
     layout.minimumInteritemSpacing = _margin;//列间距
     layout.minimumLineSpacing = _margin;//行间距
     _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 344, self.view.tz_width, self.view.tz_height - 344) collectionViewLayout:layout];
+=======
+    layout.itemSize = CGSizeMake(_itemWH, _itemWH);
+    layout.minimumInteritemSpacing = _margin;
+    layout.minimumLineSpacing = _margin;
+    _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 409, self.view.tz_width, self.view.tz_height - 409) collectionViewLayout:layout];
+>>>>>>> banchichen/master
     CGFloat rgb = 244 / 255.0;
     _collectionView.alwaysBounceVertical = YES;//总是垂直弹跳
     _collectionView.backgroundColor = [UIColor colorWithRed:rgb green:rgb blue:rgb alpha:1.0];
@@ -107,10 +118,14 @@
     if (indexPath.row == _selectedPhotos.count) {
         cell.imageView.image = [UIImage imageNamed:@"AlbumAddBtn.png"];
         cell.deleteBtn.hidden = YES;
+        cell.gifLable.hidden = YES;
     } else {
         cell.imageView.image = _selectedPhotos[indexPath.row];
         cell.asset = _selectedAssets[indexPath.row];
         cell.deleteBtn.hidden = NO;
+    }
+    if (!self.allowPickingGifSwitch.isOn) {
+        cell.gifLable.hidden = YES;
     }
     cell.deleteBtn.tag = indexPath.row;
     [cell.deleteBtn addTarget:self action:@selector(deleteBtnClik:) forControlEvents:UIControlEventTouchUpInside];
@@ -121,10 +136,7 @@
     if (indexPath.row == _selectedPhotos.count) {
         BOOL showSheet = self.showSheetSwitch.isOn;
         if (showSheet) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
             UIActionSheet *sheet = [[UIActionSheet alloc] initWithTitle:nil delegate:self cancelButtonTitle:@"取消" destructiveButtonTitle:nil otherButtonTitles:@"拍照",@"去相册选择", nil];
-#pragma clang diagnostic pop
             [sheet showInView:self.view];
         } else {
             [self pushImagePickerController];
@@ -135,14 +147,16 @@
         if ([asset isKindOfClass:[PHAsset class]]) {
             PHAsset *phAsset = asset;
             isVideo = phAsset.mediaType == PHAssetMediaTypeVideo;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         } else if ([asset isKindOfClass:[ALAsset class]]) {
             ALAsset *alAsset = asset;
             isVideo = [[alAsset valueForProperty:ALAssetPropertyType] isEqualToString:ALAssetTypeVideo];
-#pragma clang diagnostic pop
         }
-        if (isVideo) { // perview video / 预览视频
+        if ([[asset valueForKey:@"filename"] containsString:@"GIF"] && self.allowPickingGifSwitch.isOn) {
+            TZGifPhotoPreviewController *vc = [[TZGifPhotoPreviewController alloc] init];
+            TZAssetModel *model = [TZAssetModel modelWithAsset:asset type:TZAssetModelMediaTypePhotoGif timeLength:@""];
+            vc.model = model;
+            [self presentViewController:vc animated:YES completion:nil];
+        } else if (isVideo) { // perview video / 预览视频
             TZVideoPlayerController *vc = [[TZVideoPlayerController alloc] init];
             TZAssetModel *model = [TZAssetModel modelWithAsset:asset type:TZAssetModelMediaTypeVideo timeLength:@""];
             vc.model = model;
@@ -210,12 +224,14 @@
     // imagePickerVc.navigationBar.barTintColor = [UIColor greenColor];
     // imagePickerVc.oKButtonTitleColorDisabled = [UIColor lightGrayColor];
     // imagePickerVc.oKButtonTitleColorNormal = [UIColor greenColor];
+    // imagePickerVc.navigationBar.translucent = NO;
     
     // 3. Set allow picking video & photo & originalPhoto or not
     // 3. 设置是否可以选择视频/图片/原图
     imagePickerVc.allowPickingVideo = self.allowPickingVideoSwitch.isOn;
     imagePickerVc.allowPickingImage = self.allowPickingImageSwitch.isOn;
     imagePickerVc.allowPickingOriginalPhoto = self.allowPickingOriginalPhotoSwitch.isOn;
+    imagePickerVc.allowPickingGif = self.allowPickingGifSwitch.isOn;
     
     // 4. 照片排列按修改时间升序
     imagePickerVc.sortAscendingByModificationDate = self.sortAscendingSwitch.isOn;
@@ -225,6 +241,20 @@
     
     // imagePickerVc.minPhotoWidthSelectable = 3000;
     // imagePickerVc.minPhotoHeightSelectable = 2000;
+    
+    /// 5. Single selection mode, valid when maxImagesCount = 1
+    /// 5. 单选模式,maxImagesCount为1时才生效
+    imagePickerVc.showSelectBtn = NO;
+    imagePickerVc.allowCrop = self.allowCropSwitch.isOn;
+    imagePickerVc.needCircleCrop = self.needCircleCropSwitch.isOn;
+    imagePickerVc.circleCropRadius = 100;
+    /*
+    [imagePickerVc setCropViewSettingBlock:^(UIView *cropView) {
+        cropView.layer.borderColor = [UIColor redColor].CGColor;
+        cropView.layer.borderWidth = 2.0;
+    }];*/
+
+    //imagePickerVc.allowPreview = NO;
 #pragma mark - 到这里为止
     
     // You can get the photos by block, the same as by delegate.
@@ -242,17 +272,14 @@
     AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
     if ((authStatus == AVAuthorizationStatusRestricted || authStatus == AVAuthorizationStatusDenied) && iOS7Later) {
         // 无相机权限 做一个友好的提示
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
         UIAlertView * alert = [[UIAlertView alloc]initWithTitle:@"无法使用相机" message:@"请在iPhone的""设置-隐私-相机""中允许访问相机" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"设置", nil];
         [alert show];
-#define push @#clang diagnostic pop
         // 拍照之前还需要检查相册权限
-    } else if ([[TZImageManager manager] authorizationStatus] == 2) { // 已被拒绝，没有相册权限，将无法保存拍的照片
+    } else if ([TZImageManager authorizationStatus] == 2) { // 已被拒绝，没有相册权限，将无法保存拍的照片
         UIAlertView * alert = [[UIAlertView alloc]initWithTitle:@"无法访问相册" message:@"请在iPhone的""设置-隐私-相册""中允许访问相册" delegate:self cancelButtonTitle:@"取消" otherButtonTitles:@"设置", nil];
         alert.tag = 1;
         [alert show];
-    } else if ([[TZImageManager manager] authorizationStatus] == 0) { // 正在弹框询问用户是否允许访问相册，监听权限状态
+    } else if ([TZImageManager authorizationStatus] == 0) { // 正在弹框询问用户是否允许访问相册，监听权限状态
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
             return [self takePhoto];
         });
@@ -274,7 +301,7 @@
     [picker dismissViewControllerAnimated:YES completion:nil];
     NSString *type = [info objectForKey:UIImagePickerControllerMediaType];
     if ([type isEqualToString:@"public.image"]) {
-        TZImagePickerController *tzImagePickerVc = [[TZImagePickerController alloc] initWithMaxImagesCount:9 delegate:self];
+        TZImagePickerController *tzImagePickerVc = [[TZImagePickerController alloc] initWithMaxImagesCount:1 delegate:self];
         tzImagePickerVc.sortAscendingByModificationDate = self.sortAscendingSwitch.isOn;
         [tzImagePickerVc showProgressHUD];
         UIImage *image = [info objectForKey:UIImagePickerControllerOriginalImage];
@@ -291,14 +318,27 @@
                         if (tzImagePickerVc.sortAscendingByModificationDate) {
                             assetModel = [models lastObject];
                         }
-                        [_selectedAssets addObject:assetModel.asset];
-                        [_selectedPhotos addObject:image];
-                        [_collectionView reloadData];
+                        if (self.allowCropSwitch.isOn) { // 允许裁剪,去裁剪
+                            TZImagePickerController *imagePicker = [[TZImagePickerController alloc] initCropTypeWithAsset:assetModel.asset photo:image completion:^(UIImage *cropImage, id asset) {
+                                [self refreshCollectionViewWithAddedAsset:asset image:cropImage];
+                            }];
+                            imagePicker.needCircleCrop = self.needCircleCropSwitch.isOn;
+                            imagePicker.circleCropRadius = 100;
+                            [self presentViewController:imagePicker animated:YES completion:nil];
+                        } else {
+                            [self refreshCollectionViewWithAddedAsset:assetModel.asset image:image];
+                        }
                     }];
                 }];
             }
         }];
     }
+}
+
+- (void)refreshCollectionViewWithAddedAsset:(id)asset image:(UIImage *)image {
+    [_selectedAssets addObject:asset];
+    [_selectedPhotos addObject:image];
+    [_collectionView reloadData];
 }
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
@@ -309,10 +349,7 @@
 
 #pragma mark - UIActionSheetDelegate
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 - (void)actionSheet:(UIActionSheet *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
-#pragma clang diagnostic pop
     if (buttonIndex == 0) { // take photo / 去拍照
         [self takePhoto];
     } else if (buttonIndex == 1) {
@@ -322,10 +359,7 @@
 
 #pragma mark - UIAlertViewDelegate
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdeprecated-declarations"
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-#pragma clang diagnostic pop
     if (buttonIndex == 1) { // 去设置界面，开启相机访问权限
         if (iOS8Later) {
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
@@ -391,6 +425,14 @@
    // _collectionView.contentSize = CGSizeMake(0, ((_selectedPhotos.count + 2) / 3 ) * (_margin + _itemWH));
 }
 
+// If user picking a gif image, this callback will be called.
+// 如果用户选择了一个gif图片，下面的handle会被执行
+- (void)imagePickerController:(TZImagePickerController *)picker didFinishPickingGifImage:(UIImage *)animatedImage sourceAssets:(id)asset {
+    _selectedPhotos = [NSMutableArray arrayWithArray:@[animatedImage]];
+    _selectedAssets = [NSMutableArray arrayWithArray:@[asset]];
+    [_collectionView reloadData];
+}
+
 #pragma mark - Click Event
 
 - (void)deleteBtnClik:(UIButton *)sender {
@@ -422,6 +464,8 @@
 - (IBAction)allowPickingOriginPhotoSwitchClick:(UISwitch *)sender {
     if (sender.isOn) {
         [_allowPickingImageSwitch setOn:YES animated:YES];
+        [self.needCircleCropSwitch setOn:NO animated:YES];
+        [self.allowCropSwitch setOn:NO animated:YES];
     }
 }
 
@@ -430,12 +474,36 @@
         [_allowPickingOriginalPhotoSwitch setOn:NO animated:YES];
         [_showTakePhotoBtnSwitch setOn:NO animated:YES];
         [_allowPickingVideoSwitch setOn:YES animated:YES];
+        [_allowPickingGifSwitch setOn:NO animated:YES];
+    }
+}
+
+- (IBAction)allowPickingGifSwitchClick:(UISwitch *)sender {
+    if (sender.isOn) {
+        [_allowPickingImageSwitch setOn:YES animated:YES];
     }
 }
 
 - (IBAction)allowPickingVideoSwitchClick:(UISwitch *)sender {
     if (!sender.isOn) {
         [_allowPickingImageSwitch setOn:YES animated:YES];
+    }
+}
+
+- (IBAction)allowCropSwitchClick:(UISwitch *)sender {
+    if (sender.isOn) {
+        self.maxCountTF.text = @"1";
+        [self.allowPickingOriginalPhotoSwitch setOn:NO animated:YES];
+    } else {
+        [self.needCircleCropSwitch setOn:NO animated:YES];
+    }
+}
+
+- (IBAction)needCircleCropSwitchClick:(UISwitch *)sender {
+    if (sender.isOn) {
+        [self.allowCropSwitch setOn:YES animated:YES];
+        self.maxCountTF.text = @"1";
+        [self.allowPickingOriginalPhotoSwitch setOn:NO animated:YES];
     }
 }
 
@@ -456,12 +524,13 @@
             ALAsset *alAsset = (ALAsset *)asset;
             fileName = alAsset.defaultRepresentation.filename;;
         }
-        NSLog(@"图片名字:%@",fileName);
+        //NSLog(@"图片名字:%@",fileName);
     }
 }
 
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations {
     return UIInterfaceOrientationMaskPortrait;
 }
+#pragma clang diagnostic pop
 
 @end
