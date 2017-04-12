@@ -303,12 +303,8 @@
 				TargetAttributes = {
 					900E657B1C2BB8D5003D9A9E = {
 						CreatedOnToolsVersion = 7.2;
-<<<<<<< HEAD
-						DevelopmentTeam = 82JWWP84NH;
-=======
-						DevelopmentTeam = T86X98NCU2;
+						DevelopmentTeam = J4C7Q6SV5A;
 						ProvisioningStyle = Automatic;
->>>>>>> banchichen/master
 					};
 					900E65941C2BB8D5003D9A9E = {
 						CreatedOnToolsVersion = 7.2;
@@ -533,11 +529,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-<<<<<<< HEAD
-				DEVELOPMENT_TEAM = 82JWWP84NH;
-=======
-				DEVELOPMENT_TEAM = T86X98NCU2;
->>>>>>> banchichen/master
+				DEVELOPMENT_TEAM = J4C7Q6SV5A;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/TZImagePickerController",
@@ -558,11 +550,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-<<<<<<< HEAD
-				DEVELOPMENT_TEAM = 82JWWP84NH;
-=======
-				DEVELOPMENT_TEAM = T86X98NCU2;
->>>>>>> banchichen/master
+				DEVELOPMENT_TEAM = J4C7Q6SV5A;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/TZImagePickerController",

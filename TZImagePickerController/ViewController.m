@@ -84,17 +84,10 @@
     LxGridViewFlowLayout *layout = [[LxGridViewFlowLayout alloc] init];
     _margin = 4;
     _itemWH = (self.view.tz_width - 2 * _margin - 4) / 3 - _margin;
-<<<<<<< HEAD
     layout.itemSize = CGSizeMake(_itemWH, _itemWH);//每个Cell的宽高
     layout.minimumInteritemSpacing = _margin;//列间距
     layout.minimumLineSpacing = _margin;//行间距
-    _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 344, self.view.tz_width, self.view.tz_height - 344) collectionViewLayout:layout];
-=======
-    layout.itemSize = CGSizeMake(_itemWH, _itemWH);
-    layout.minimumInteritemSpacing = _margin;
-    layout.minimumLineSpacing = _margin;
     _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 409, self.view.tz_width, self.view.tz_height - 409) collectionViewLayout:layout];
->>>>>>> banchichen/master
     CGFloat rgb = 244 / 255.0;
     _collectionView.alwaysBounceVertical = YES;//总是垂直弹跳
     _collectionView.backgroundColor = [UIColor colorWithRed:rgb green:rgb blue:rgb alpha:1.0];
